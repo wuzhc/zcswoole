@@ -1,4 +1,4 @@
-#### zcswoole基于[swoole](https://wiki.swoole.com/)的开发的php框架,目的是为了能够帮助开发人员更加专注于业务逻辑开发;zcswoole高度封装swoole并保留良好扩展性开发人员可以通过配置文件或子类重写或扩展zcswoole功能
+> zcswoole基于[swoole](https://wiki.swoole.com/)的开发的php框架,目的是为了能够帮助开发人员更加专注于业务逻辑开发;zcswoole高度封装swoole并保留良好扩展性开发人员可以通过配置文件或子类重写或扩展zcswoole功能
 
 #### 特点:
 - zcswoole必须运作在cli模式下,不同于传统的web框架,zcswoole不依赖于apache和nginx等webserver服务,只需要安装了php就可以运行
@@ -10,7 +10,7 @@
 - 远程RPC
 
 #### 性能:
-![](images/performance.png)
+![](https://box.kancloud.cn/b770e67f45bae287d25d8228f45cc69b_1357x450.png)
 
 #### 设计模式:
 - 命令行模式
@@ -37,4 +37,4 @@ php zcswoole.php http stop   # 定制http服务
 php zcswoole.php http reload # 重启http服务
 php zcswoole.php http status # http服务状态
 ```
-![](images/status.png)
+![](https://box.kancloud.cn/ce6854e25763bd46ad0cbc4eb37b2548_869x266.png**)
