@@ -41,9 +41,9 @@ class HttpCommand extends HttpServerCommand
                     $nextTime = CronExpression::factory($record['timer'])->getNextRunDate()->getTimestamp() - 1;
                     if (time() == $nextTime) {
                         $this->server->task($record['command']);
-                    } /*else {
-                        echo "no run; next time is ".$nextTime.", now time is ". time() . PHP_EOL;
-                    }*/
+                    } else {
+                        Console::msg("no run; next time is ".$nextTime.", now time is ". time());
+                    }
                 }
             });
         }
@@ -71,6 +71,6 @@ class HttpCommand extends HttpServerCommand
      */
     public function finish(Server $server, $taskID, $data)
     {
-        echo $data . PHP_EOL;
+        Console::success('has run ' . $data);
     }
 }
