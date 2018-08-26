@@ -7,6 +7,7 @@ use Cron\CronExpression;
 use Swoole\Http\Server;
 use zcswoole\command\HttpServerCommand;
 use zcswoole\services\MysqliDB;
+use zcswoole\utils\Console;
 
 /**
  * http服务,继承zcswoole的httpServer服务后,覆盖父类方法可以扩展自己功能
@@ -33,15 +34,16 @@ class HttpCommand extends HttpServerCommand
     {
         // 为第一个进程安装定时器
         if (!$this->server->taskworker && $workerID == 0) {
+            Console::msg('crontab task start......');
             swoole_timer_tick(1000, function(){
                 $records = MysqliDB::instance()->where('status', 0)->get('crontab');
                 foreach ($records as $record) {
                     $nextTime = CronExpression::factory($record['timer'])->getNextRunDate()->getTimestamp() - 1;
                     if (time() == $nextTime) {
                         $this->server->task($record['command']);
-                    } else {
+                    } /*else {
                         echo "no run; next time is ".$nextTime.", now time is ". time() . PHP_EOL;
-                    }
+                    }*/
                 }
             });
         }
