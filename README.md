@@ -37,4 +37,4 @@ php zcswoole.php http stop   # 定制http服务
 php zcswoole.php http reload # 重启http服务
 php zcswoole.php http status # http服务状态
 ```
-![](https://box.kancloud.cn/ce6854e25763bd46ad0cbc4eb37b2548_869x266.png**)
+![](https://box.kancloud.cn/ce6854e25763bd46ad0cbc4eb37b2548_869x266.png)
