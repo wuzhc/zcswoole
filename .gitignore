@@ -1,0 +1,10 @@
+/test
+/command/shell
+/vendor
+/.idea
+/app/log
+/app/data/smarty
+app/data/server.pid
+app/data/http.pid
+app/data/websocket.pid
+composer.phar
