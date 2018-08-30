@@ -15,17 +15,6 @@ use zcswoole\ZCSwoole;
  */
 class Site extends HttpController
 {
-    public $sessionKey = '';
-    public $userID = '';
-
-    public function beforeAction()
-    {
-        $userID = $this->request->cookie['userID'] ?? null;
-        if ($userID) {
-            $this->userID = $userID;
-            $this->sessionKey = 'session:user:' . $userID;
-        }
-    }
 
     /**
      * 登录页面
@@ -43,9 +32,9 @@ class Site extends HttpController
                     ->where('password', $password)
                     ->getOne(Constant::CHAT_USER);
                 if ($res) {
-                    $key = 'session:user:' . $res['id'];
-                    ZCSwoole::$app->session->set($key, $res, 7200);
-                    $this->response->cookie('userID', $res['id'], 0, '/');
+                    $this->session->set('uid', $res['id']);
+                    $this->session->set('username', $res['account']);
+                    $this->session->set('portrait', $res['portrait']);
                     $this->endJson(null, 0, '登录成功');
                 } else {
                     $this->endJson(null, 1, '用户名或密码不正确');
@@ -63,8 +52,7 @@ class Site extends HttpController
      */
     public function logout()
     {
-        ZCSwoole::$app->session->drop($this->sessionKey);
-        $this->response->cookie('userID', null, null, '/');
+        $this->session->drop();
         $this->response->redirect($this->createUrl('backend/site/login'));
     }
 
@@ -73,22 +61,13 @@ class Site extends HttpController
      */
     public function index()
     {
-        if ($this->isGuest()) {
+        if (!$this->session->get('uid')) {
             $this->response->redirect($this->createUrl('backend/site/login'));
         } else {
             $this->render('index', [
                 'name' => 'zcswoole',
-                'user' => ZCSwoole::$app->session->get($this->sessionKey, 'name')
+                'user' => $this->session->get('username')
             ]);
-        }
-    }
-    
-    protected function isGuest()
-    {
-        if (!$this->sessionKey) {
-            return true;
-        } else {
-            return ZCSwoole::$app->session->get($this->sessionKey, 'id') ? false : true;
         }
     }
 
@@ -113,7 +92,7 @@ class Site extends HttpController
         $this->render('welcome', [
             'name' => 'zcswoole',
             'time' => date('Y-m-d H:i:s'),
-            'user' => ZCSwoole::$app->session->get($this->sessionKey, 'name'),
+            'user' => $this->session->get('username'),
             'phpVersion' => PHP_VERSION,
             'phpMode' => php_sapi_name(),
             'zendVersion' => zend_version(),

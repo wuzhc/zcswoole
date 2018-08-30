@@ -15,22 +15,13 @@ use zcswoole\ZCSwoole;
  */
 class Chat extends HttpController
 {
-    public $sessionKey = '';
-    public $userID = '';
-
     /**
      * 登录检测
      */
     public function beforeAction()
     {
-        $userID = $this->request->cookie['userID'] ?? null;
-        if ($userID) {
-            $this->userID = $userID;
-            $this->sessionKey = 'session:user:' . $userID;
-        }
-
         // 登录检测
-        if (!$this->sessionKey || !ZCSwoole::$app->session->get($this->sessionKey, 'id')) {
+        if (!$this->session->get('uid')) {
             $this->response->redirect($this->createUrl('backend/site/login'), 302);
         }
     }
@@ -40,10 +31,12 @@ class Chat extends HttpController
      */
     public function index()
     {
+        $userID = $this->session->get('uid');
+
         // 根据最后聊天时间排序的对话框
         $dialogs = MysqliDB::instance()
-            ->where('from_uid', $this->userID)
-            ->where('to_uid', $this->userID, '=', 'or')
+            ->where('from_uid', $userID)
+            ->where('to_uid', $userID, '=', 'or')
             ->orderBy('update_time', 'desc')
             ->get('chat_dialog');
 
@@ -56,7 +49,7 @@ class Chat extends HttpController
 
             $record = $this->getLastChatRecord($dialog['last_record_id']);
             $temp['lastText'] = $record['content'];
-            $temp['status'] = $dialog['status'] == 1 && ($record['user_id'] != $this->userID) ? 1 : 0;
+            $temp['status'] = $dialog['status'] == 1 && ($record['user_id'] != $userID) ? 1 : 0;
 
             $temp['dialogID'] = $dialog['id'];  // 对话ID
             $temp['to'] = $target['id'];        // 对话对象
@@ -66,13 +59,13 @@ class Chat extends HttpController
 
         $friends = MysqliDB::instance()
             ->join(Constant::CHAT_USER . ' user', 'user.id = map.friend_id', 'inner')
-            ->where('map.user_id', $this->userID)
+            ->where('map.user_id', $userID)
             ->where('map.status', 1)
             ->get(Constant::CHAT_FRIENDS_MAP . ' map', null, 'user.*');
 
         $groups = MysqliDB::instance()
             ->join(Constant::CHAT_GROUP . ' grp', 'grp.id = map.group_id', 'inner')
-            ->where('map.user_id', $this->userID ?: 1)
+            ->where('map.user_id', $userID ?: 1)
             ->where('map.status', 1)
             ->get(Constant::CHAT_GROUPS_MAP . ' map', null, 'grp.*');
 
@@ -80,8 +73,8 @@ class Chat extends HttpController
             'dialogs' => $data,
             'friends' => $friends,
             'groups' => $groups,
-            'userID' => ZCSwoole::$app->session->get($this->sessionKey, 'id'),
-            'portrait' => ZCSwoole::$app->session->get($this->sessionKey, 'portrait')
+            'userID' => $this->session->get('uid'),
+            'portrait' => $this->session->get('portrait')
         ]);
     }
 
@@ -92,7 +85,7 @@ class Chat extends HttpController
     protected function getTarget($args)
     {
         if ($args['type'] == 1) {           // 私聊用户
-            if ($args['from_uid'] == $this->userID) {
+            if ($args['from_uid'] == $this->session->get('uid')) {
                 $user = MysqliDB::instance()->getOneByPk(Constant::CHAT_USER, $args['to_uid']);
             } else {
                 $user = MysqliDB::instance()->getOneByPk(Constant::CHAT_USER, $args['from_uid']);

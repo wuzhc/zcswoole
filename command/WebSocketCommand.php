@@ -8,7 +8,6 @@ use Swoole\WebSocket\Server;
 use zcswoole\command\WebSocketServerCommand;
 use zcswoole\services\MysqliDB;
 use zcswoole\services\ZRedis;
-use zcswoole\ZCSwoole;
 
 /**
  * swoole_websocket_server
@@ -52,10 +51,12 @@ class WebSocketCommand extends WebSocketServerCommand
      */
     public function message(Server $server, $frame)
     {
+
         $data = json_decode($frame->data, true);
         $userID = $data['from'] ?? null;
-        $sessionKey = 'session:user:'. $userID;
-        $chatKey = 'chat:fd:user:' . ZCSwoole::$app->session->get($sessionKey, 'id');
+        $sender = MysqliDB::instance()->getOneByPk(Constant::CHAT_USER, $userID);
+
+        $chatKey = 'chat:fd:user:' . $userID;
         $this->map[$frame->fd] = $userID;
 
         $opType = $data['opType'];
@@ -92,8 +93,8 @@ class WebSocketCommand extends WebSocketServerCommand
                             'dialogID'      => $data['dialogID'],
                             'time'          => date('Y-m-d H:i:s'),
                             'targetType'    => $data['targetType'],
-                            'name'          => ZCSwoole::$app->session->get($sessionKey, 'name'),
-                            'portrait'      => ZCSwoole::$app->session->get($sessionKey, 'portrait'),
+                            'name'          => $sender['account'],
+                            'portrait'      => $sender['portrait'],
                             'groupName'     => $group['name'] ?? '',
                             'groupPortrait' => $group['portrait'] ?? '',
                         ];
@@ -101,7 +102,6 @@ class WebSocketCommand extends WebSocketServerCommand
                     } elseif ($data['targetType'] == 1) {                  // 对象是个人
                         $toKey = 'chat:fd:user:' . $data['to'];
                         if ($fds = ZRedis::instance()->sMembers($toKey)) { // 查看对方是否在线,在线则发送消息给对方
-                            $isOnline = true;
                             $pushData= [
                                 'opType'     => 'message',
                                 'targetType' => 1,
@@ -109,8 +109,8 @@ class WebSocketCommand extends WebSocketServerCommand
                                 'content'    => $data['content'],
                                 'time'       => date('Y-m-d H:i:s'),
                                 'dialogID'   => $data['dialogID'],
-                                'name'       => ZCSwoole::$app->session->get($sessionKey, 'name'),
-                                'portrait'   => ZCSwoole::$app->session->get($sessionKey, 'portrait'),
+                                'name'       => $sender['account'],
+                                'portrait'   => $sender['portrait'],
                             ];
                             foreach ($fds as $fd) {
                                 $fdInfo = $server->connection_info($fd);

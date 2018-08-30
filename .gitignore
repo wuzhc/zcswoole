@@ -8,3 +8,5 @@ app/data/server.pid
 app/data/http.pid
 app/data/websocket.pid
 composer.phar
+/session_files
+/testss.log
