@@ -6,14 +6,13 @@ namespace app\controllers\backend;
 use common\config\Constant;
 use zcswoole\http\HttpController;
 use zcswoole\services\MysqliDB;
-use zcswoole\ZCSwoole;
 
 /**
  * 后台管理首页
  * Class Site
  * @package app\controllers\backend
  */
-class Site extends HttpController
+class SiteController extends HttpController
 {
 
     /**

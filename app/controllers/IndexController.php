@@ -14,7 +14,7 @@ use zcswoole\ZCSwoole;
  * @package app\controllers
  * @author wuzhc 2018-08-09
  */
-Class Index extends HttpController
+Class IndexController extends HttpController
 {
     /**
      * 业务逻辑

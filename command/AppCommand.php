@@ -11,10 +11,10 @@ use zcswoole\utils\Console;
 
 /**
  * http服务,继承zcswoole的httpServer服务后,覆盖父类方法可以扩展自己功能
- * Class HttpCommand
+ * Class AppCommand
  * @package command
  */
-class HttpCommand extends HttpServerCommand
+class AppCommand extends HttpServerCommand
 {
     // demo,为http服务添加一个定时器功能,重写父类onEvent方法
     public function onEvent()

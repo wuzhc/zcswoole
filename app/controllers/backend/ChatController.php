@@ -6,14 +6,13 @@ namespace app\controllers\backend;
 use common\config\Constant;
 use zcswoole\http\HttpController;
 use zcswoole\services\MysqliDB;
-use zcswoole\ZCSwoole;
 
 /**
  * 聊天
  * Class Chat
  * @package app\controllers\backend
  */
-class Chat extends HttpController
+class ChatController extends HttpController
 {
     /**
      * 登录检测

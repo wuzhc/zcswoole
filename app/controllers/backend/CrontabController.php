@@ -12,7 +12,7 @@ use zcswoole\services\MysqliDB;
  * Class Crontab
  * @package app\controllers\backend
  */
-class Crontab extends HttpController
+class CrontabController extends HttpController
 {
     /**
      * 列表

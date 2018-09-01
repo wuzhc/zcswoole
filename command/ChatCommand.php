@@ -10,12 +10,13 @@ use zcswoole\services\MysqliDB;
 use zcswoole\services\ZRedis;
 
 /**
+ * 聊天室
  * swoole_websocket_server
- * Class WebSocketCommand
+ * Class ChatCommand
  * @package app\command
  * @author wuzhc
  */
-class WebSocketCommand extends WebSocketServerCommand
+class ChatCommand extends WebSocketServerCommand
 {
     // 存储fd和userID映射关系
     // TODO 很多fd时建议映射关系保存到redis,否则会占用当前worker进程内存
