@@ -11,7 +11,7 @@ use zcswoole\command\CommandContext;
 use zcswoole\Config;
 use zcswoole\Event;
 use zcswoole\services\MysqliDB;
-use zcswoole\utils\Console;
+use zcswoole\utils\ConsoleUtil;
 
 /**
  * 独立的定时器
@@ -55,7 +55,7 @@ class CrontabCommand extends Command
         $this->server->on('receive', [$this, 'receive']);
         $this->server->on('task', [$this, 'task']);
         $this->server->on('finish', [$this, 'finish']);
-        Console::msg('contrab starting');
+        ConsoleUtil::msg('contrab starting');
         $this->server->start();
     }
 

@@ -7,10 +7,9 @@ use Swoole\Process;
 use Swoole\Timer;
 use zcswoole\command\Command;
 use zcswoole\command\CommandContext;
-use zcswoole\components\Logger;
 use zcswoole\Router;
 use zcswoole\services\RedisDB;
-use zcswoole\utils\Console;
+use zcswoole\utils\ConsoleUtil;
 
 /**
  * 多进程程序,根据队列积压消息数量动态创建进程处理队列任务,原理参考swoole-jobs
@@ -69,17 +68,17 @@ class QueueCommand extends Command
                 $this->start();
                 break;
             case 'status':
-                Console::success("can not support status");
+                ConsoleUtil::success("can not support status");
                 break;
             case 'reload':
-                Console::success("can not support reload");
+                ConsoleUtil::success("can not support reload");
                 break;
             case 'stop':
                 $mpid = $this->getMasterPid();
                 if ($mpid) {
                     Process::kill($mpid, SIGUSR1);
                 } else {
-                    Console::error("master process has exit");
+                    ConsoleUtil::error("master process has exit");
                 }
                 break;
             case 'kill':
@@ -87,7 +86,7 @@ class QueueCommand extends Command
                 if ($mpid) {
                     Process::kill($mpid);
                 } else {
-                    Console::error("master process has exit");
+                    ConsoleUtil::error("master process has exit");
                 }
                 break;
         }
@@ -100,7 +99,7 @@ class QueueCommand extends Command
     {
         $pid = @file_get_contents($this->pidFile);
         if ($pid && \swoole_process::kill($pid, 0)) {
-            Console::error("queue is running, you can stop it");
+            ConsoleUtil::error("queue is running, you can stop it");
         }
 
         $this->mpid = posix_getpid();
@@ -153,12 +152,12 @@ class QueueCommand extends Command
                         if (class_exists($controller)) {
                             if (false !== call_user_func_array([$controller, $action],$params)) {
                                 file_put_contents($this->log, "$type worker $worker->pid handle $task success \n", FILE_APPEND);
-                                Console::success("$type worker $worker->pid handle $task success");
+                                ConsoleUtil::success("$type worker $worker->pid handle $task success");
                             } else {
-                                Console::error("$type worker $worker->pid handle $task failed", false);
+                                ConsoleUtil::error("$type worker $worker->pid handle $task failed", false);
                             }
                         } else {
-                            Console::error("Class $controller is not exist", false);
+                            ConsoleUtil::error("Class $controller is not exist", false);
                         }
                     } else {
                         break;
@@ -170,7 +169,7 @@ class QueueCommand extends Command
             && $beginTime + $this->maxExecTime > time());
 
             $redis->close();
-            Console::msg("$type worker $worker->pid will exit");
+            ConsoleUtil::msg("$type worker $worker->pid will exit");
         }, false, false);
 
         if ($pid = $process->start()) {
@@ -182,7 +181,7 @@ class QueueCommand extends Command
                 }
                 $this->dynamicWorkerNum[$queueName]++;
             }
-            Console::msg(($workerType == self::WORKER_DYNAMIC_TYPE ? 'dynamic' : 'static') . " worker $pid start");
+            ConsoleUtil::msg(($workerType == self::WORKER_DYNAMIC_TYPE ? 'dynamic' : 'static') . " worker $pid start");
         }
 
         return $pid;
@@ -203,7 +202,7 @@ class QueueCommand extends Command
 
                     // 静态worker退出后,再重新创建一个新进程;动态进程退出后不新建进程,动态worker数量减一
                     if ($workerInfo['type'] == self::WORKER_STATIC_TYPE) {
-                        Console::msg("static worker $process->pid restart");
+                        ConsoleUtil::msg("static worker $process->pid restart");
                         // 3次尝试新建worker
                         for ($i = 0; $i < 3; $i++) {
                             $newPid = $this->createProcess($workerInfo['queue'], self::WORKER_STATIC_TYPE);
@@ -216,7 +215,7 @@ class QueueCommand extends Command
                         $dynamicWorkerNum = $this->dynamicWorkerNum[$workerInfo['queue']] ?? 0;
                         if ($dynamicWorkerNum > 0) {
                             --$this->dynamicWorkerNum[$workerInfo['queue']];
-                            Console::msg("dynamic worker $pid has exit");
+                            ConsoleUtil::msg("dynamic worker $pid has exit");
                         }
                     }
                 }
@@ -226,7 +225,7 @@ class QueueCommand extends Command
         // 终端强制终止
         Process::signal(SIGINT, function () {
             if (self::MASTER_STATUS_STOP === $this->getMasterStatus()) {
-                Console::success("master has exit");
+                ConsoleUtil::success("master has exit");
             }
             $this->killChildWorkers();
             $this->exitMaster();
@@ -235,7 +234,7 @@ class QueueCommand extends Command
         // 命令强制退出
         Process::signal(SIGTERM, function () {
             if (self::MASTER_STATUS_STOP === $this->getMasterStatus()) {
-                Console::success("master has exit");
+                ConsoleUtil::success("master has exit");
             }
             $this->killChildWorkers();
             $this->exitMaster();
@@ -244,7 +243,7 @@ class QueueCommand extends Command
         // 平滑退出
         Process::signal(SIGUSR1, function () {
             if (self::MASTER_STATUS_STOP === $this->getMasterStatus()) {
-                Console::success("master has exit");
+                ConsoleUtil::success("master has exit");
             }
             $this->saveMasterData(['status' => self::MASTER_STATUS_WAITING]);
         });
@@ -271,9 +270,9 @@ class QueueCommand extends Command
     {
         foreach ($this->workers as $pid => $worker) {
             if (\swoole_process::kill($pid)) {
-                Console::success("worker $pid exit success");
+                ConsoleUtil::success("worker $pid exit success");
             } else {
-                Console::error("worker $pid exit failed", false);
+                ConsoleUtil::error("worker $pid exit failed", false);
             }
         }
     }
@@ -286,7 +285,7 @@ class QueueCommand extends Command
         @unlink($this->pidFile);
         @unlink($this->pidInfoFile);
         sleep(1);
-        Console::error("master exit");
+        ConsoleUtil::error("master exit");
     }
 
     /**
@@ -355,7 +354,7 @@ class QueueCommand extends Command
                 return ;
             }
         } elseif (self::MASTER_STATUS_RUNNING === $masterStatus) {
-            Console::msg("正在检测队列积压任务数---------------------");
+            ConsoleUtil::msg("正在检测队列积压任务数---------------------");
             $redis = RedisDB::getConnection();
             foreach ($this->queues as $name => $queue) {
                 $len = $redis->lLen($name);

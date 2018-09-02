@@ -11,7 +11,7 @@ namespace app\controllers\queue;
 
 use zcswoole\Controller;
 use zcswoole\services\RedisDB;
-use zcswoole\utils\Console;
+use zcswoole\utils\ConsoleUtil;
 
 class TestController extends Controller
 {
