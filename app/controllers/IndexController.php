@@ -3,6 +3,7 @@
 namespace app\controllers;
 
 
+use common\config\Constant;
 use Cron\CronExpression;
 use zcswoole\components\RpcClient;
 use zcswoole\Config;
@@ -57,19 +58,35 @@ Class IndexController extends HttpController
     public function cronb()
     {
         $cron = \Cron\CronExpression::factory('@monthly');
-        $this->response->end($cron->getNextRunDate()->getTimestamp() . '------'  . $cron->getPreviousRunDate()->format('Y-m-d H:i:s'));
+        $this->response->end($cron->getNextRunDate()->getTimestamp() . '------' . $cron->getPreviousRunDate()
+                ->format('Y-m-d H:i:s'));
     }
 
+    /**
+     * 远程调用demo
+     */
     public function rpc()
     {
-        $i = 0;
         $t1 = microtime(true);
 
-        for ($j=0;$j<20;$j++) {
-            if (ZCSwoole::$app->rpcClient->asyncRequest(['name'=>'wuzhc','age'=>10])) {
+        $recv = '';
+        $error = 'nothing';
+        $res = ZCSwoole::$app->rpcClient->request('/rpc/test/getName');
+        if ($res['status'] === Constant::STATUS_SUCCESS) {
+            $data = $res['data'];
+            if ($data['status'] === Constant::STATUS_SUCCESS) {
+                $recv = $data['data'];
+            } else {
+                $error = $res['msg'];
             }
+        } else {
+            $error = $res['msg'];
         }
 
-        $this->response->end(microtime(true)-$t1);
+        $timer = microtime(true) - $t1;
+        $this->response->write("timer: $timer<br>");
+        $this->response->write("error: $error<br>");
+        $this->response->write("recv: $recv<br>");
+        $this->response->end();
     }
 }

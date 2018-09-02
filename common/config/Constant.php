@@ -11,6 +11,9 @@ namespace common\config;
 
 class Constant
 {
+    const STATUS_SUCCESS = 0;
+    const STATUS_FAILED = 1;
+
     const CHAT_USER = 'chat_user';
     const CHAT_GROUP = 'chat_group';
     const CHAT_RECORD = 'chat_record';
